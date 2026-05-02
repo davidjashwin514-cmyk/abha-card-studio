@@ -1,0 +1,44 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install pyinstaller
+          pip install customtkinter
+          pip install pillow
+          pip install opencv-python
+          pip install pytesseract
+          pip install pymupdf
+          pip install qrcode
+          pip install numpy
+
+      - name: Build EXE
+        run: pyinstaller --noconfirm --windowed --icon=abha_studio.ico --add-data "logo.png;." --add-data "tesseract;tesseract" --add-data "NotoSansTamil-Bold.ttf;." --add-data "background.jpg;." --add-data "background2.jpg;." abha_card_studio.py
+
+      - name: Zip output
+        run: Compress-Archive -Path dist\abha_card_studio\* -DestinationPath abha_card_studio.zip
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v5.${{ github.run_number }}
+          name: ABHA Card Studio v5.${{ github.run_number }}
+          files: abha_card_studio.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
